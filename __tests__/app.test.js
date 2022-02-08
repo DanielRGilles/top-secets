@@ -60,7 +60,7 @@ describe('user routes', () => {
   });
 
   it('should return a list of secrets if signed in', async () => {
-    const [agent] = await registerAndLogin({ email: 'topDawg' });
+    const [agent] = await registerAndLogin({ email: 'test@defense.gov' });
 
     const res = await agent.get('/api/v1/secrets');
 
@@ -76,5 +76,16 @@ describe('user routes', () => {
     expect(res.body).toEqual(expect.arrayContaining([{ id: expect.any(String), title:'Origin of Life?', description:'Mars' }]));
   });
 
+  it('should log into the app, then call the delete method to log out and then try to get a secret and receive the 401 error to sign in', async () => {
+    const [agent] = await registerAndLogin({ email: 'test@defense.gov' });
+    await agent.delete('/api/v1/users/sessions');
+    const res = await request(app).get('/api/v1/secrets');
+
+    expect(res.body).toEqual({
+      message: 'You must be signed in to continue',
+      status: 401,
+    });
+    
+  });
   
 });
