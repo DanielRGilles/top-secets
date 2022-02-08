@@ -50,19 +50,8 @@ describe('user routes', () => {
     });
   });
 
-  it('returns the current user', async () => {
-    const [agent, user] = await registerAndLogin();
-    const me = await agent.get('/api/v1/users/me');
-   
-    expect(me.body).toEqual({
-      ...user,
-      exp: expect.any(Number),
-      iat: expect.any(Number),
-    });
-  });
-
-  it('should return a 401 when signed out and listing all users', async () => {
-    const res = await request(app).get('/api/v1/users');
+  it('should return a 401 when signed out and trying to view secrets', async () => {
+    const res = await request(app).get('/api/v1/secrets');
 
     expect(res.body).toEqual({
       message: 'You must be signed in to continue',
@@ -80,10 +69,5 @@ describe('user routes', () => {
     });
   });
 
-  it('should return a list of users if signed in as admin', async () => {
-    const [agent, user] = await registerAndLogin({ email: 'admin' });
-    const res = await agent.get('/api/v1/users');
-
-    expect(res.body).toEqual([{ ...user }]);
-  });
+  
 });
