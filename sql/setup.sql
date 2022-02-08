@@ -11,9 +11,10 @@ CREATE TABLE users (
 );
 
 CREATE TABLE secrets (
-    id BIGINT GENERATED AS PRIMARY KEY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title text NOT NULL,
     description text NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO secrets (title, description) VALUES('Aliens?', 'Alf is real');

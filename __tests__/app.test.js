@@ -4,7 +4,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const UserService = require('../lib/services/UserService');
 
-// Dummy user for testing
+// Mock user for testing
 const mockUser = {
   firstName: 'Test',
   lastName: 'User',
@@ -12,17 +12,17 @@ const mockUser = {
   password: '12345',
 };
 
+
 const registerAndLogin = async (userProps = {}) => {
   const password = userProps.password ?? mockUser.password;
 
-  // Create an "agent" that gives us the ability
-  // to store cookies between requests in a test
+  // agent dependency allows the storage of cookies for tests
   const agent = request.agent(app);
 
-  // Create a user to sign in with
+  // Call create user method
   const user = await UserService.create({ ...mockUser, ...userProps });
 
-  // ...then sign in
+  // after user creation this signs into the page
   const { email } = user;
   await agent.post('/api/v1/users/sessions').send({ email, password });
   return [agent, user];
@@ -59,14 +59,21 @@ describe('user routes', () => {
     });
   });
 
-  it('should return a 403 when signed in but not admin and listing all users', async () => {
-    const [agent] = await registerAndLogin();
-    const res = await agent.get('/api/v1/users');
+  it('should return a list of secrets if signed in', async () => {
+    const [agent] = await registerAndLogin({ email: 'topDawg' });
 
-    expect(res.body).toEqual({
-      message: 'You do not have access to view this page',
-      status: 403,
-    });
+    const res = await agent.get('/api/v1/secrets');
+
+    expect(res.body).toEqual([{ id: expect.any(String), title:'Aliens?', description:'Alf is real' }]);
+  });
+ 
+  it('should create a new secret', async () => {
+    const [agent] = await registerAndLogin({ email: 'test@defense.gov' });
+    await agent.post('/api/v1/secrets')
+      .send({ title:'Origin of Life?', description:'Mars' });
+    const res = await agent.get('/api/v1/secrets');
+
+    expect(res.body).toEqual(expect.arrayContaining([{ id: expect.any(String), title:'Origin of Life?', description:'Mars' }]));
   });
 
   
